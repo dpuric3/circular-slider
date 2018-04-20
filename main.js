@@ -90,6 +90,21 @@ class CircleSlider {
 
         this.circleSvg.appendChild(circleSlider);
 
+        //create label
+        var labelParent = document.getElementsByClassName('labelscontainer');
+        var labelDiv = document.createElement('div');
+        labelDiv.className = 'label';
+        labelParent[0].appendChild(labelDiv);
+
+        var labelText = document.createElement('p');
+        labelText.setAttribute('class', 'text');
+        labelText.innerHTML = this.options.label;
+        labelDiv.appendChild(labelText);
+
+        this.labelValue = document.createElement('p');
+        this.labelValue.setAttribute('class', 'value');
+        this.labelValue.innerHTML = this.options.minValue;
+        labelDiv.appendChild(this.labelValue);
     }
 
     getPointOnCirle(angle) {
@@ -100,6 +115,8 @@ class CircleSlider {
     }
 
     moveSlider(angle) {
+        // console.log(this.getDegrees(angle));
+        this.updateLabelValue(this.getDegrees(angle));
         const newPosition = this.getPointOnCirle(angle);
         this.slider.setAttribute('cx', newPosition.x);
         this.slider.setAttribute('cy', newPosition.y);
@@ -112,6 +129,7 @@ class CircleSlider {
             x: e.clientX,
             y: e.clientY
         };
+
         this.moveSlider(this.getAngle(coords));
     }
 
@@ -139,6 +157,14 @@ class CircleSlider {
         var centerY = rectangle.y + (rectangle.height / 2);
         var atan = -Math.atan2(coords.x-centerX, coords.y-centerY) + Math.PI / 2;
         return atan;
+    }
+
+    getDegrees(angle) {
+        return angle/(Math.PI/180) + 90;
+    }
+
+    updateLabelValue(newValue) {
+        this.labelValue.innerHTML = Math.round(newValue);
     }
 }
 

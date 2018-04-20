@@ -1,3 +1,12 @@
 .container {
     display: block;
 }
+
+.text,
+.value {
+	display: inline-block;
+}
+
+.text {
+	margin-right: 16px;
+}
