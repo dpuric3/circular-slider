@@ -116,8 +116,12 @@ class CircleSlider {
 
     moveSlider(angle) {
         // console.log(this.getDegrees(angle));
-        this.updateLabelValue(this.getDegrees(angle));
-        const newPosition = this.getPointOnCirle(angle);
+        var stepsObj = this.getStepsList();
+        var stepsArr = this.getStepsArr();
+        var deg = this.getDegrees(angle);
+        var newAngle = this.getClosestStepAngle(deg, stepsArr)
+        this.updateLabelValue(stepsObj[newAngle]);
+        const newPosition = this.getPointOnCirle(this.getRadians(newAngle));
         this.slider.setAttribute('cx', newPosition.x);
         this.slider.setAttribute('cy', newPosition.y);
     }
@@ -163,17 +167,74 @@ class CircleSlider {
         return angle/(Math.PI/180) + 90;
     }
 
+    getRadians(angle) {
+        return angle * (Math.PI / 180) - Math.PI / 2;
+    }
+
     updateLabelValue(newValue) {
         this.labelValue.innerHTML = Math.round(newValue);
+    }
+
+    getStepsList() {
+        var range = this.options.maxValue - this.options.minValue;
+        var maxNumberOfSteps = range / this.options.step;
+        var angleStep = 360 / maxNumberOfSteps;
+        var steps = {};
+        var stepValue = 0;
+        var angleValue = 0;
+        steps[0] = this.options.minValue; 
+        for (var i = 0; i < maxNumberOfSteps; i++) {
+            stepValue += this.options.step;
+            angleValue += Math.round(angleStep);
+            steps[angleValue] = stepValue;
+        }
+        return steps;
+    }
+
+    getStepsArr() {
+        var range = this.options.maxValue - this.options.minValue;
+        var maxNumberOfSteps = range / this.options.step;
+        var stepsArr = [];
+        var stepValue = 0;
+        stepsArr.push(0);
+        for (var i = 0; i < maxNumberOfSteps; i++) {
+            stepValue += this.options.step;
+            stepsArr.push(stepValue);
+        }
+        return stepsArr;
+    }
+
+    //could be improved since the list is sorted
+    getClosestStepAngle(num, arr) {
+        var curr = arr[0];
+        var diff = Math.abs(num - curr);
+        for (var val = 0; val < arr.length; val++) {
+            var newdiff = Math.abs(num - arr[val]);
+            if (newdiff < diff) {
+                diff = newdiff;
+                curr = arr[val];
+            }
+        }
+        return curr;
     }
 }
 
 new CircleSlider({
     container: 'circle-container',
     color: '#F3781C',
-    minValue: 0,
-    maxValue: 360,
-    step: 1,
+    minValue: 20,
+    maxValue: 720,
+    step: 22,
     radius: 70,
     label: 'Celtra Profit'
 });
+
+// new CircleSlider({
+//     container: 'circle-container',
+//     color: '#F3781C',
+//     minValue: 0,
+//     maxValue: 360,
+//     step: 1,
+//     radius: 100,
+//     label: 'Celtra Profit 2'
+// });
