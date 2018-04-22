@@ -21,9 +21,12 @@ class CircleSlider {
 
         this.sliderOptions = {
             fill: 'orange',
-            // radius: this.options.radius / 4,
             strokeColor: 'grey',
             strokeWidth: 1
+        }
+
+        this.fillOptions = {
+            opacity: 0.8
         }
 
         this.options = Object.assign({}, this.defaultOptions, options);
@@ -88,6 +91,22 @@ class CircleSlider {
         this.slider.style.strokeWidth = this.sliderOptions.strokeWidth;
         circleSlider.appendChild(this.slider);
 
+        //create arc for coloring background
+        this.arc = document.createElementNS(this.xmlns, 'path');
+        this.arc.setAttribute(
+            'd',
+            this.renderArc(
+                sliderCoordinates.x,
+                sliderCoordinates.y,
+                (3 * Math.PI / 2)
+            )
+        );
+        this.arc.style.fill = 'none';
+        this.arc.style.stroke = this.options.color;
+        this.arc.style.strokeWidth = this.svgOptions.strokeWidth;
+        this.arc.style.opacity = this.fillOptions.opacity;
+        circleSlider.appendChild(this.arc);
+
         this.circleSvg.appendChild(circleSlider);
 
         //create label
@@ -120,10 +139,12 @@ class CircleSlider {
         var stepsArr = this.getStepsArr();
         var deg = this.getDegrees(angle);
         var newAngle = this.getClosestStepAngle(deg, stepsArr)
+        //check if last step, reduce angle by a bit soo you have a 100% effect
         this.updateLabelValue(stepsObj[newAngle]);
         const newPosition = this.getPointOnCirle(this.getRadians(newAngle));
         this.slider.setAttribute('cx', newPosition.x);
         this.slider.setAttribute('cy', newPosition.y);
+        this.arc.setAttribute('d', this.renderArc(0, 0, this.getRadians(newAngle)));
     }
 
     mouseDown(e) {
@@ -182,6 +203,8 @@ class CircleSlider {
         var steps = {};
         var stepValue = 0;
         var angleValue = 0;
+        //account for less then 100% steps, adjust angles
+        //calculate or throw error if step is too small
         steps[0] = this.options.minValue; 
         for (var i = 0; i < maxNumberOfSteps; i++) {
             stepValue += this.options.step;
@@ -217,14 +240,28 @@ class CircleSlider {
         }
         return curr;
     }
+    
+    //https://stackoverflow.com/questions/5736398/how-to-calculate-the-svg-path-for-an-arc-of-a-circle
+    renderArc(x, y, endAngle) {
+        const start = this.getPointOnCirle(endAngle);
+        const end = this.getPointOnCirle(3 * Math.PI / 2);
+        const largeArcFlag = endAngle <= (Math.PI / 2) ? '0' : '1';
+
+        const d = [
+            'M', start.x, start.y,
+            'A', this.options.radius, this.options.radius, 0, largeArcFlag, 0, end.x, end.y
+        ].join(' ');
+
+        return d;  
+    }
 }
 
 new CircleSlider({
     container: 'circle-container',
     color: '#F3781C',
-    minValue: 20,
+    minValue: 0,
     maxValue: 720,
-    step: 22,
+    step: 40,
     radius: 70,
     label: 'Celtra Profit'
 });
