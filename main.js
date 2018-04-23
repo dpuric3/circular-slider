@@ -1,3 +1,5 @@
+
+var sliders = [];
 class CircleSlider {
     constructor(options) {
         this.defaultOptions = {
@@ -31,6 +33,9 @@ class CircleSlider {
 
         this.options = Object.assign({}, this.defaultOptions, options);
         this.xmlns = 'http://www.w3.org/2000/svg';
+
+        this.healthCheck();
+
         this.container = document.getElementById(this.options.container);
 
         // Check if container exists, if not create it
@@ -108,6 +113,7 @@ class CircleSlider {
         this.slider.style.fill = this.sliderOptions.fill;
         this.slider.style.stroke = this.sliderOptions.strokeColor;
         this.slider.style.strokeWidth = this.sliderOptions.strokeWidth;
+        this.slider.style.cursor = 'pointer';
         circleSlider.appendChild(this.slider);
 
         
@@ -144,7 +150,9 @@ class CircleSlider {
         var deg = this.getDegrees(angle);
         var newAngle = this.getClosestStepAngle(deg, stepsObj.stepsArr)
         this.updateLabelValue(stepsObj.steps[newAngle]);
+        debugger;
         //check if last step, reduce angle by a bit soo you have a 100% effect
+        // TODO check for 0 step
         const newPosition = this.getPointOnCirle(this.getRadians(newAngle === 360 ? newAngle-- : newAngle));
         this.slider.setAttribute('cx', newPosition.x);
         this.slider.setAttribute('cy', newPosition.y);
@@ -205,36 +213,26 @@ class CircleSlider {
         var maxNumberOfSteps = range / this.options.step;
         var angleStep = 360 / maxNumberOfSteps;
         var steps = {};
+        var stepsArr = [];
         var stepValue = 0;
         var angleValue = 0;
         //throw error on bad step
         steps[0] = this.options.minValue; 
         for (var i = 0; i < maxNumberOfSteps; i++) {
             stepValue += this.options.step;
-            angleValue += Math.round(angleStep);
-            if (angleValue <= 360) {
-                steps[angleValue] = stepValue;
+            angleValue += angleStep;
+            //accounting for js bad float calculation :)
+            if (angleValue <= 361) {
+                steps[parseInt(angleValue)] = stepValue;
+                stepsArr.push(parseInt(angleValue));
             }
         }
 
         return {
             steps: steps,
-            stepsArr: this.getStepsArr(),
+            stepsArr: stepsArr,
             lastStepIndex: maxNumberOfSteps
         };
-    }
-
-    getStepsArr() {
-        var range = this.options.maxValue - this.options.minValue;
-        var maxNumberOfSteps = range / this.options.step;
-        var stepsArr = [];
-        var stepValue = 0;
-        stepsArr.push(0);
-        for (var i = 0; i < maxNumberOfSteps; i++) {
-            stepValue += this.options.step;
-            stepsArr.push(stepValue);
-        }
-        return stepsArr;
     }
 
     //could be improved since the list is sorted
@@ -264,6 +262,62 @@ class CircleSlider {
 
         return d;  
     }
+
+    healthCheck() {
+        if (this.options.label === undefined) throw new Error('Label is not defined');
+        if (this.options.color === undefined) throw new Error('[' + this.options.label + ']:Color is not defined');
+        if (!this.checkColor()) throw new Error('[' + this.options.label + ']:String does not represent color (hex or actual color value) check supported values (https://www.w3schools.com/colors/colors_names.asp)');
+        if (this.options.minValue === undefined || Number.isNaN(this.options.minValue)) throw new Error('[' + this.options.label + ']:minValue is not defined correctly, expecting number got: ' + this.options.minValue);
+        if (this.options.maxValue === undefined || Number.isNaN(this.options.maxValue)) throw new Error('[' + this.options.label + ']:maxValue is not defined correctly, expecting number got: ' + this.options.maxValue);
+        if (this.options.step === undefined || Number.isNaN(this.options.step)) throw new Error('[' + this.options.label + ']:Step is not defined correctly, expecting number got: ' + this.options.step);
+        if (this.options.radius === undefined || Number.isNaN(this.options.radius)) throw new Error('[' + this.options.label + ']:Step is not defined correctly, expecting number got: ' + this.options.radius);
+        if (this.options.minValue >= this.options.maxValue) throw new Error('[' + this.options.label + ']:maxValue (' + this.options.maxValue + ') must not be bigger then minValue (' + this.options.minValue + ')!');
+        if (this.checkStepValidity()) throw new Error('[' + this.options.label + ']:Step value is not valid');
+        if (this.checkRadiusSize()) throw new Error('[' + this.options.label + ']:Radius value is not valid');
+        sliders.push(this.options);
+    }
+
+    checkStepValidity() {
+        var range = this.options.maxValue - this.options.minValue;
+        var maxNumberOfSteps = range / this.options.step;
+        var delta = range % maxNumberOfSteps;
+
+        if (delta === 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    checkColor() {
+        var color2 = "";
+        var result = true;
+        var e = document.getElementById('testdiv');
+        e.style.borderColor = "";
+        e.style.borderColor = this.options.color;
+        color2 = e.style.borderColor;
+        if (color2.length == 0) { result = false; }
+        e.style.borderColor = "";
+        return result;
+    }
+
+    checkRadiusSize() {
+        if (sliders.length === 0) {
+            return false;
+        }
+        for (var slider in sliders) {
+            var r = sliders[slider].radius;
+            var low = r - this.svgOptions.strokeWidth;
+            var max = r + this.svgOptions.strokeWidth;
+            var cont = sliders[slider].container;
+
+            if (this.options.radius >= low && this.options.radius <= max && this.options.container === cont) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 new CircleSlider({
@@ -273,18 +327,18 @@ new CircleSlider({
     maxValue: 720,
     step: 20,
     radius: 70,
-    label: 'Celtra Profit'
+    label: 'Profit'
 });
 
-new CircleSlider({
-    container: 'circle-container',
-    color: 'blue',
-    minValue: 0,
-    maxValue: 360,
-    step: 1,
-    radius: 150,
-    label: 'Celtra Profit 2'
-});
+// new CircleSlider({
+//     container: 'circle-container',
+//     color: 'blue',
+//     minValue: 0,
+//     maxValue: 123,
+//     step: 1,
+//     radius: 92,
+//     label: 'Profit 2'
+// });
 
 // new CircleSlider({
 //     container: 'circle-container',
@@ -292,7 +346,7 @@ new CircleSlider({
 //     minValue: 0,
 //     maxValue: 360,
 //     step: 1,
-//     radius: 80,
+//     radius: 150,
 //     label: 'Celtra Profit 2'
 // });
 
