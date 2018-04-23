@@ -79,12 +79,6 @@ class CircleSlider {
         this.circleSliderBG.style.opacity = this.svgOptions.circleBgOpacity;
         this.circleSliderBG.setAttribute('stroke-dasharray', this.svgOptions.dashStroke);
         circleSlider.appendChild(this.circleSliderBG);
-
-        this.mouseDownHandler = this.mouseDown.bind(this);
-        this.mouseUpHandler = this.mouseUp.bind(this);
-        this.mouseMoveHandler = this.mouseMove.bind(this);
-        this.circleSvg.addEventListener('mousedown', this.mouseDownHandler);
-
        
         var sliderCoordinates = this.getPointOnCirle(3 * Math.PI / 2);
 
@@ -131,10 +125,22 @@ class CircleSlider {
         labelText.innerHTML = this.options.label;
         labelDiv.appendChild(labelText);
 
+        var labelColor = document.createElement('div');
+        labelColor.setAttribute('class', 'label-color');
+        labelColor.style.backgroundColor = this.options.color;
+        labelDiv.appendChild(labelColor);
+
         this.labelValue = document.createElement('p');
         this.labelValue.setAttribute('class', 'value');
         this.labelValue.innerHTML = this.options.minValue;
         labelDiv.appendChild(this.labelValue);
+
+
+        //create and add event listeners
+        this.mouseDownHandler = this.mouseDown.bind(this);
+        this.mouseUpHandler = this.mouseUp.bind(this);
+        this.mouseMoveHandler = this.mouseMove.bind(this);
+        this.slider.addEventListener('mousedown', this.mouseDownHandler);
     }
 
     getPointOnCirle(angle) {
@@ -330,25 +336,25 @@ new CircleSlider({
     label: 'Profit'
 });
 
-// new CircleSlider({
-//     container: 'circle-container',
-//     color: 'blue',
-//     minValue: 0,
-//     maxValue: 123,
-//     step: 1,
-//     radius: 92,
-//     label: 'Profit 2'
-// });
+new CircleSlider({
+    container: 'circle-container',
+    color: 'blue',
+    minValue: 0,
+    maxValue: 123,
+    step: 1,
+    radius: 100,
+    label: 'Profit 2'
+});
 
-// new CircleSlider({
-//     container: 'circle-container',
-//     color: '#F3781C',
-//     minValue: 0,
-//     maxValue: 360,
-//     step: 1,
-//     radius: 150,
-//     label: 'Celtra Profit 2'
-// });
+new CircleSlider({
+    container: 'circle-container',
+    color: 'red',
+    minValue: 20,
+    maxValue: 360,
+    step: 10,
+    radius: 150,
+    label: 'Profit 3'
+});
 
 // new CircleSlider({
 //     container: 'circle-container',
