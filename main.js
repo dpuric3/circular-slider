@@ -141,6 +141,7 @@ class CircleSlider {
         this.mouseUpHandler = this.mouseUp.bind(this);
         this.mouseMoveHandler = this.mouseMove.bind(this);
         this.slider.addEventListener('mousedown', this.mouseDownHandler);
+        this.slider.addEventListener('touchstart', this.mouseDownHandler)
     }
 
     getPointOnCirle(angle) {
@@ -156,7 +157,6 @@ class CircleSlider {
         var deg = this.getDegrees(angle);
         var newAngle = this.getClosestStepAngle(deg, stepsObj.stepsArr)
         this.updateLabelValue(stepsObj.steps[newAngle]);
-        debugger;
         //check if last step, reduce angle by a bit soo you have a 100% effect
         // TODO check for 0 step
         const newPosition = this.getPointOnCirle(this.getRadians(newAngle === 360 ? newAngle-- : newAngle));
@@ -167,31 +167,37 @@ class CircleSlider {
 
     mouseDown(e) {
         window.addEventListener('mousemove', this.mouseMoveHandler);
+        window.addEventListener('touchmove', this.mouseMoveHandler);
         window.addEventListener('mouseup', this.mouseUpHandler);
-        var coords = {
-            x: e.clientX,
-            y: e.clientY
-        };
+        window.addEventListener('touchend', this.mouseUpHandler);
 
-        this.moveSlider(this.getAngle(coords));
+        this.moveSlider(this.getAngle(this.getClientCoords(e)));
     }
 
     mouseUp(e) {
         window.removeEventListener('mousemove', this.mouseMoveHandler);
+        window.removeEventListener('touchmove', this.mouseMoveHandler);
         window.removeEventListener('mouseup', this.mouseUpHandler);
-        var coords = {
-            x: e.clientX,
-            y: e.clientY
-        };
-        this.moveSlider(this.getAngle(coords));
+        window.removeEventListener('touchend', this.mouseUpHandler);
+
+        this.moveSlider(this.getAngle(this.getClientCoords(e)));
     }
 
     mouseMove(e) {
-        var coords = {
-            x: e.clientX,
-            y: e.clientY
-        };
-        this.moveSlider(this.getAngle(coords));
+        this.moveSlider(this.getAngle(this.getClientCoords(e)));
+    }
+
+    getClientCoords(e) {
+        var coords = { x: 0, y: 0 };
+        if (event.type == 'touchstart' || event.type == 'touchmove' || event.type == 'touchend') {
+            var touch = event.touches[0] || event.changedTouches[0];
+            coords.x = touch.clientX;
+            coords.y = touch.clientY;
+        } else if (event.type == 'mousedown' || event.type == 'mouseup' || event.type == 'mousemove') {
+            coords.x = event.clientX;
+            coords.y = event.clientY;
+        }
+        return coords;
     }
 
     getAngle(coords) {
