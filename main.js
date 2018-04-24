@@ -40,15 +40,15 @@ class CircleSlider {
 
         // Check if container exists, if not create it
         if (!this.container) {
-            console.log('No container found, creating one');
-            var containerParent = document.getElementsByClassName('slidecontainer');
+            var containerParent = document.getElementsByClassName('wrapper');
             var containerDiv = document.createElement('div');
             containerDiv.id = this.options.container;
-            containerDiv.className = 'container';
+            containerDiv.className = 'slidecontainer';
             containerParent[0].appendChild(containerDiv);
+            this.container = document.getElementById(this.options.container);
         }
 
-        var circleSvgId = this.defaultOptions.container + '-slider';
+        var circleSvgId = this.options.container + '-slider';
         this.circleSvg = document.getElementById(circleSvgId);
         if (!this.circleSvg) {
             this.circleSvg = document.createElementNS(this.xmlns, 'svg');
@@ -115,11 +115,20 @@ class CircleSlider {
         this.circleSvg.appendChild(circleSlider);
 
         //create label
-        var labelParent = document.getElementsByClassName('labelscontainer');
-        var labelDiv = document.createElement('div');
-        labelDiv.className = 'label';
-        labelParent[0].appendChild(labelDiv);
+        var labelParent = document.getElementById(this.options.container + '-label-container');
+        if (!labelParent) {
+            var newParent = document.getElementById(this.options.container);
+            var labelContainer = document.createElement('div');
+            labelContainer.id = this.options.container + '-label-container';
+            labelContainer.className = 'label-container';
+            newParent.appendChild(labelContainer);
+            labelParent = document.getElementById(this.options.container + '-label-container');
+        }
 
+        var labelDiv = document.createElement('div');
+        labelDiv.setAttribute('class', 'label');
+        labelParent.appendChild(labelDiv);
+        
         var labelText = document.createElement('p');
         labelText.setAttribute('class', 'text');
         labelText.innerHTML = this.options.label;
@@ -140,8 +149,15 @@ class CircleSlider {
         this.mouseDownHandler = this.mouseDown.bind(this);
         this.mouseUpHandler = this.mouseUp.bind(this);
         this.mouseMoveHandler = this.mouseMove.bind(this);
+
         this.slider.addEventListener('mousedown', this.mouseDownHandler);
         this.slider.addEventListener('touchstart', this.mouseDownHandler)
+
+        this.circleSliderBG.addEventListener('mousedown', this.mouseDownHandler);
+        this.circleSliderBG.addEventListener('touchstart', this.mouseDownHandler)
+
+        this.arc.addEventListener('mousedown', this.mouseDownHandler);
+        this.arc.addEventListener('touchstart', this.mouseDownHandler)
     }
 
     getPointOnCirle(angle) {
@@ -362,12 +378,12 @@ new CircleSlider({
     label: 'Profit 3'
 });
 
-// new CircleSlider({
-//     container: 'circle-container',
-//     color: '#F3781C',
-//     minValue: 0,
-//     maxValue: 360,
-//     step: 1,
-//     radius: 120,
-//     label: 'Celtra Profit 2'
-// });
+new CircleSlider({
+    container: 'circle-container1',
+    color: '#F3781C',
+    minValue: 0,
+    maxValue: 360,
+    step: 1,
+    radius: 120,
+    label: 'Celtra Profit 2'
+});

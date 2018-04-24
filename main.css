@@ -2,16 +2,23 @@
     display: block;
 }
 
-/* .text,
-.value,
-.label-color {
-	display: inline-block;
-} */
-
+.wrapper {
+	display: flex;
+	flex-direction: column;
+}
+.slidecontainer {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
 .label {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+}
+
+.text {
+	width: 150px;
 }
 
 .text,
@@ -22,4 +29,11 @@
 .label-color {
 	width: 20px;
 	height: 20px;
+}
+
+
+@media only screen and (max-width: 640px) {
+	.slidecontainer {
+		flex-direction: column;
+	}
 }
