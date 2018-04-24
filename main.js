@@ -390,3 +390,14 @@ new CircleSlider({
     radius: 120,
     label: 'Celtra Profit 2'
 });
+
+
+// new CircleSlider({
+//     container: 'circle-container1',
+//     color: '#F3781C',
+//     minValue: 0,
+//     maxValue: 360,
+//     step: 1,
+//     radius: 50,
+//     label: 'Celtra Profit 3'
+// });
