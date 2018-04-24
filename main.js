@@ -157,10 +157,10 @@ class CircleSlider {
     }
 
     moveSlider(angle) {
-        var stepsObj = this.getStepsInfo();
+        var steps = this.getSteps();
         var deg = this.getDegrees(angle);
-        var newAngle = this.getClosestStepAngle(deg, stepsObj.stepsArr)
-        this.updateLabelValue(stepsObj.steps[newAngle]);
+        var newAngle = this.getClosestStepAngle(deg, steps)
+        this.updateLabelValue(steps[newAngle]);
         const newPosition = this.getPointOnCirle(this.getRadians(newAngle === 360 ? newAngle-- : newAngle));
         this.slider.setAttribute('cx', newPosition.x);
         this.slider.setAttribute('cy', newPosition.y);
@@ -228,16 +228,15 @@ class CircleSlider {
         this.labelValue.innerHTML = Math.round(newValue);
     }
 
-    getStepsInfo() {
+    getSteps() {
         var range = this.options.maxValue - this.options.minValue;
         var maxNumberOfSteps = range / this.options.step;
         var angleStep = 360 / maxNumberOfSteps;
-        var steps = {};
-        var stepsArr = [];
         var stepValue = this.options.minValue;
         var angleValue = 0;
 
         // todo check 0
+        var steps = {};
         steps[0] = this.options.minValue;
         for (var i = 0; i < maxNumberOfSteps; i++) {
             stepValue += this.options.step;
@@ -245,25 +244,20 @@ class CircleSlider {
             //accounting for js bad float calculation :)
             if (angleValue <= 361) {
                 steps[parseInt(angleValue)] = stepValue;
-                stepsArr.push(parseInt(angleValue));
             }
         }
-        return {
-            steps: steps,
-            stepsArr: stepsArr,
-            lastStepIndex: maxNumberOfSteps
-        };
+        return steps;
     }
 
-    //could be improved since the list is sorted
-    getClosestStepAngle(num, arr) {
-        var curr = arr[0];
+    getClosestStepAngle(num, list) {
+        var curr = list[0];
         var diff = Math.abs(num - curr);
-        for (var val = 0; val < arr.length; val++) {
-            var newdiff = Math.abs(num - arr[val]);
+        for (var angle in list) {
+            var angleValue = parseFloat(angle);
+            var newdiff = Math.abs(num - parseFloat(angle));
             if (newdiff < diff) {
                 diff = newdiff;
-                curr = arr[val];
+                curr = angleValue;
             }
         }
         return curr;
