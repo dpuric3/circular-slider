@@ -1,5 +1,15 @@
 
 var sliders = [];
+
+/**
+   * Create a new slider with specified options.
+   * @param {string} container - Container in which the slider will render.
+   * @param {string} color - Color fill, can be hex or color values.
+   * @param {number} minValue - Minimum value of slider.
+   * @param {number} maxValue - Maximum value of slider.
+   * @param {number} step - Step of slider.
+   * @param {number} radius - Radius of circle.
+ */
 class CircleSlider {
     constructor(options) {
         this.defaultOptions = {
@@ -25,10 +35,6 @@ class CircleSlider {
             fill: 'black',
             strokeColor: 'white',
             strokeWidth: 2
-        }
-
-        this.fillOptions = {
-            // opacity: 0.6
         }
 
         this.options = Object.assign({}, this.defaultOptions, options);
@@ -86,7 +92,7 @@ class CircleSlider {
         this.arc = document.createElementNS(this.xmlns, 'path');
         this.arc.setAttribute(
             'd',
-            this.renderArc(
+            this.buildArcPath(
                 sliderCoordinates.x,
                 sliderCoordinates.y,
                 (3 * Math.PI / 2)
@@ -95,8 +101,6 @@ class CircleSlider {
         this.arc.style.fill = 'none';
         this.arc.style.stroke = this.options.color;
         this.arc.style.strokeWidth = this.svgOptions.strokeWidth;
-        this.arc.style.opacity = this.fillOptions.opacity;
-        // this.arc.setAttribute('stroke-dasharray', this.svgOptions.dashStroke);
         circleSlider.appendChild(this.arc);
 
          // Create slider
@@ -109,8 +113,6 @@ class CircleSlider {
         this.slider.style.strokeWidth = this.sliderOptions.strokeWidth;
         this.slider.style.cursor = 'pointer';
         circleSlider.appendChild(this.slider);
-
-        
 
         this.circleSvg.appendChild(circleSlider);
 
@@ -143,21 +145,8 @@ class CircleSlider {
         this.labelValue.setAttribute('class', 'value');
         this.labelValue.innerHTML = this.options.minValue;
         labelDiv.appendChild(this.labelValue);
-
-
-        //create and add event listeners
-        this.mouseDownHandler = this.mouseDown.bind(this);
-        this.mouseUpHandler = this.mouseUp.bind(this);
-        this.mouseMoveHandler = this.mouseMove.bind(this);
-
-        this.slider.addEventListener('mousedown', this.mouseDownHandler);
-        this.slider.addEventListener('touchstart', this.mouseDownHandler)
-
-        this.circleSliderBG.addEventListener('mousedown', this.mouseDownHandler);
-        this.circleSliderBG.addEventListener('touchstart', this.mouseDownHandler)
-
-        this.arc.addEventListener('mousedown', this.mouseDownHandler);
-        this.arc.addEventListener('touchstart', this.mouseDownHandler)
+        
+        this.initListeneres();
     }
 
     getPointOnCirle(angle) {
@@ -178,10 +167,11 @@ class CircleSlider {
         const newPosition = this.getPointOnCirle(this.getRadians(newAngle === 360 ? newAngle-- : newAngle));
         this.slider.setAttribute('cx', newPosition.x);
         this.slider.setAttribute('cy', newPosition.y);
-        this.arc.setAttribute('d', this.renderArc(0, 0, this.getRadians(newAngle)));
+        this.arc.setAttribute('d', this.buildArcPath(0, 0, this.getRadians(newAngle)));
     }
 
     mouseDown(e) {
+        e.preventDefault();
         window.addEventListener('mousemove', this.mouseMoveHandler);
         window.addEventListener('touchmove', this.mouseMoveHandler);
         window.addEventListener('mouseup', this.mouseUpHandler);
@@ -191,6 +181,7 @@ class CircleSlider {
     }
 
     mouseUp(e) {
+        e.preventDefault();
         window.removeEventListener('mousemove', this.mouseMoveHandler);
         window.removeEventListener('touchmove', this.mouseMoveHandler);
         window.removeEventListener('mouseup', this.mouseUpHandler);
@@ -200,18 +191,19 @@ class CircleSlider {
     }
 
     mouseMove(e) {
+        e.preventDefault();
         this.moveSlider(this.getAngle(this.getClientCoords(e)));
     }
 
     getClientCoords(e) {
         var coords = { x: 0, y: 0 };
-        if (event.type == 'touchstart' || event.type == 'touchmove' || event.type == 'touchend') {
-            var touch = event.touches[0] || event.changedTouches[0];
+        if (e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend') {
+            var touch = e.touches[0] || e.changedTouches[0];
             coords.x = touch.clientX;
             coords.y = touch.clientY;
-        } else if (event.type == 'mousedown' || event.type == 'mouseup' || event.type == 'mousemove') {
-            coords.x = event.clientX;
-            coords.y = event.clientY;
+        } else if (e.type == 'mousedown' || e.type == 'mouseup' || e.type == 'mousemove') {
+            coords.x = e.clientX;
+            coords.y = e.clientY;
         }
         return coords;
     }
@@ -278,7 +270,7 @@ class CircleSlider {
     }
 
     //https://stackoverflow.com/questions/5736398/how-to-calculate-the-svg-path-for-an-arc-of-a-circle
-    renderArc(x, y, endAngle) {
+    buildArcPath(x, y, endAngle) {
         const start = this.getPointOnCirle(endAngle);
         const end = this.getPointOnCirle(3 * Math.PI / 2);
         const largeArcFlag = endAngle <= (Math.PI / 2) ? '0' : '1';
@@ -289,6 +281,22 @@ class CircleSlider {
         ].join(' ');
 
         return d;  
+    }
+
+    //create and add event listeners
+    initListeneres() {
+        this.mouseDownHandler = this.mouseDown.bind(this);
+        this.mouseUpHandler = this.mouseUp.bind(this);
+        this.mouseMoveHandler = this.mouseMove.bind(this);
+
+        this.slider.addEventListener('mousedown', this.mouseDownHandler);
+        this.slider.addEventListener('touchstart', this.mouseDownHandler)
+
+        this.circleSliderBG.addEventListener('mousedown', this.mouseDownHandler);
+        this.circleSliderBG.addEventListener('touchstart', this.mouseDownHandler)
+
+        this.arc.addEventListener('mousedown', this.mouseDownHandler);
+        this.arc.addEventListener('touchstart', this.mouseDownHandler)
     }
 
     healthCheck() {
