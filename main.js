@@ -42,7 +42,6 @@ class CircleSlider {
         this.healthCheck();
 
         this.container = document.getElementById(this.options.container);
-
         // Check if container exists, if not create it
         if (!this.container) {
             var containerParent = document.getElementsByClassName('wrapper');
@@ -72,12 +71,7 @@ class CircleSlider {
     render() {
         var circleSlider = document.createElementNS(this.xmlns, 'g');
 
-        // Create circle
-        this.circleSliderBG = document.createElementNS(this.xmlns, 'circle');
-        this.circleSliderBG.setAttribute('class', 'circle');
-        this.circleSliderBG.setAttribute('cx', this.svgOptions.width / 2);
-        this.circleSliderBG.setAttribute('cy', this.svgOptions.width / 2);
-        this.circleSliderBG.setAttribute('r', this.options.radius);
+        this.circleSliderBG = this.createCircle(this.svgOptions.width / 2, this.svgOptions.width / 2, this.options.radius);
         this.circleSliderBG.setAttribute('fill', 'none');
         this.circleSliderBG.style.strokeWidth = this.svgOptions.strokeWidth;
         this.circleSliderBG.style.stroke = this.svgOptions.strokeColor;
@@ -104,10 +98,7 @@ class CircleSlider {
         circleSlider.appendChild(this.arc);
 
         // Create slider
-        this.slider = document.createElementNS(this.xmlns, 'circle');
-        this.slider.setAttribute('r', this.svgOptions.strokeWidth / 2);
-        this.slider.setAttribute('cx', sliderCoordinates.x);
-        this.slider.setAttribute('cy', sliderCoordinates.y);
+        this.slider = this.slider = this.createCircle(sliderCoordinates.x, sliderCoordinates.y, this.svgOptions.strokeWidth / 2 + this.svgOptions.strokeWidth / 8);
         this.slider.style.fill = this.sliderOptions.fill;
         this.slider.style.stroke = this.sliderOptions.strokeColor;
         this.slider.style.strokeWidth = this.sliderOptions.strokeWidth;
@@ -149,6 +140,15 @@ class CircleSlider {
         this.initListeneres();
     }
 
+    createCircle(cx, cy, radius){
+        var circle = document.createElementNS(this.xmlns, 'circle');
+        circle.setAttribute('class', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', radius);
+        return circle;
+    }
+
     getPointOnCirle(angle) {
         return {
             x: Math.cos(angle) * this.options.radius + this.svgOptions.width / 2,
@@ -161,8 +161,6 @@ class CircleSlider {
         var deg = this.getDegrees(angle);
         var newAngle = this.getClosestStepAngle(deg, stepsObj.stepsArr)
         this.updateLabelValue(stepsObj.steps[newAngle]);
-        //check if last step, reduce angle by a bit soo you have a 100% effect
-        // TODO check for 0 step
         const newPosition = this.getPointOnCirle(this.getRadians(newAngle === 360 ? newAngle-- : newAngle));
         this.slider.setAttribute('cx', newPosition.x);
         this.slider.setAttribute('cy', newPosition.y);
@@ -236,9 +234,10 @@ class CircleSlider {
         var angleStep = 360 / maxNumberOfSteps;
         var steps = {};
         var stepsArr = [];
-        var stepValue = 0;
+        var stepValue = this.options.minValue;
         var angleValue = 0;
-        //throw error on bad step
+
+        // todo check 0
         steps[0] = this.options.minValue;
         for (var i = 0; i < maxNumberOfSteps; i++) {
             stepValue += this.options.step;
