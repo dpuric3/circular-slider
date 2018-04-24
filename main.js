@@ -1,14 +1,13 @@
-
 var sliders = [];
 
 /**
-   * Create a new slider with specified options.
-   * @param {string} container - Container in which the slider will render.
-   * @param {string} color - Color fill, can be hex or color values.
-   * @param {number} minValue - Minimum value of slider.
-   * @param {number} maxValue - Maximum value of slider.
-   * @param {number} step - Step of slider.
-   * @param {number} radius - Radius of circle.
+ * Create a new slider with specified options.
+ * @param {string} container - Container in which the slider will render.
+ * @param {string} color - Color fill, can be hex or color values.
+ * @param {number} minValue - Minimum value of slider.
+ * @param {number} maxValue - Maximum value of slider.
+ * @param {number} step - Step of slider.
+ * @param {number} radius - Radius of circle.
  */
 class CircleSlider {
     constructor(options) {
@@ -85,7 +84,7 @@ class CircleSlider {
         this.circleSliderBG.style.opacity = this.svgOptions.circleBgOpacity;
         this.circleSliderBG.setAttribute('stroke-dasharray', this.svgOptions.dashStroke);
         circleSlider.appendChild(this.circleSliderBG);
-       
+
         var sliderCoordinates = this.getPointOnCirle(3 * Math.PI / 2);
 
         //create arc for coloring background
@@ -95,7 +94,8 @@ class CircleSlider {
             this.buildArcPath(
                 sliderCoordinates.x,
                 sliderCoordinates.y,
-                (3 * Math.PI / 2)
+                (3 * Math.PI / 2),
+                this.options.radius
             )
         );
         this.arc.style.fill = 'none';
@@ -103,7 +103,7 @@ class CircleSlider {
         this.arc.style.strokeWidth = this.svgOptions.strokeWidth;
         circleSlider.appendChild(this.arc);
 
-         // Create slider
+        // Create slider
         this.slider = document.createElementNS(this.xmlns, 'circle');
         this.slider.setAttribute('r', this.svgOptions.strokeWidth / 2);
         this.slider.setAttribute('cx', sliderCoordinates.x);
@@ -130,7 +130,7 @@ class CircleSlider {
         var labelDiv = document.createElement('div');
         labelDiv.setAttribute('class', 'label');
         labelParent.appendChild(labelDiv);
-        
+
         var labelText = document.createElement('p');
         labelText.setAttribute('class', 'text');
         labelText.innerHTML = this.options.label;
@@ -145,7 +145,7 @@ class CircleSlider {
         this.labelValue.setAttribute('class', 'value');
         this.labelValue.innerHTML = this.options.minValue;
         labelDiv.appendChild(this.labelValue);
-        
+
         this.initListeneres();
     }
 
@@ -157,7 +157,6 @@ class CircleSlider {
     }
 
     moveSlider(angle) {
-        // console.log(this.getDegrees(angle));
         var stepsObj = this.getStepsInfo();
         var deg = this.getDegrees(angle);
         var newAngle = this.getClosestStepAngle(deg, stepsObj.stepsArr)
@@ -167,7 +166,7 @@ class CircleSlider {
         const newPosition = this.getPointOnCirle(this.getRadians(newAngle === 360 ? newAngle-- : newAngle));
         this.slider.setAttribute('cx', newPosition.x);
         this.slider.setAttribute('cy', newPosition.y);
-        this.arc.setAttribute('d', this.buildArcPath(0, 0, this.getRadians(newAngle)));
+        this.arc.setAttribute('d', this.buildArcPath(0, 0, this.getRadians(newAngle), this.options.radius));
     }
 
     mouseDown(e) {
@@ -196,7 +195,10 @@ class CircleSlider {
     }
 
     getClientCoords(e) {
-        var coords = { x: 0, y: 0 };
+        var coords = {
+            x: 0,
+            y: 0
+        };
         if (e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend') {
             var touch = e.touches[0] || e.changedTouches[0];
             coords.x = touch.clientX;
@@ -212,12 +214,12 @@ class CircleSlider {
         const rectangle = this.circleSliderBG.getBoundingClientRect();
         var centerX = rectangle.x + (rectangle.width / 2);
         var centerY = rectangle.y + (rectangle.height / 2);
-        var atan = -Math.atan2(coords.x-centerX, coords.y-centerY) + Math.PI / 2;
+        var atan = -Math.atan2(coords.x - centerX, coords.y - centerY) + Math.PI / 2;
         return atan;
     }
 
     getDegrees(angle) {
-        return angle/(Math.PI/180) + 90;
+        return angle / (Math.PI / 180) + 90;
     }
 
     getRadians(angle) {
@@ -237,7 +239,7 @@ class CircleSlider {
         var stepValue = 0;
         var angleValue = 0;
         //throw error on bad step
-        steps[0] = this.options.minValue; 
+        steps[0] = this.options.minValue;
         for (var i = 0; i < maxNumberOfSteps; i++) {
             stepValue += this.options.step;
             angleValue += angleStep;
@@ -247,7 +249,6 @@ class CircleSlider {
                 stepsArr.push(parseInt(angleValue));
             }
         }
-
         return {
             steps: steps,
             stepsArr: stepsArr,
@@ -270,17 +271,17 @@ class CircleSlider {
     }
 
     //https://stackoverflow.com/questions/5736398/how-to-calculate-the-svg-path-for-an-arc-of-a-circle
-    buildArcPath(x, y, endAngle) {
+    buildArcPath(x, y, endAngle, radius) {
         const start = this.getPointOnCirle(endAngle);
         const end = this.getPointOnCirle(3 * Math.PI / 2);
         const largeArcFlag = endAngle <= (Math.PI / 2) ? '0' : '1';
 
         const d = [
             'M', start.x, start.y,
-            'A', this.options.radius, this.options.radius, 0, largeArcFlag, 0, end.x, end.y
+            'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
         ].join(' ');
 
-        return d;  
+        return d;
     }
 
     //create and add event listeners
@@ -327,14 +328,15 @@ class CircleSlider {
 
     checkColor() {
         var color2 = "";
-        var result = true;
         var e = document.getElementById('testdiv');
         e.style.borderColor = "";
         e.style.borderColor = this.options.color;
         color2 = e.style.borderColor;
-        if (color2.length == 0) { result = false; }
+        if (color2.length == 0) {
+            return false;
+        }
         e.style.borderColor = "";
-        return result;
+        return true;
     }
 
     checkRadiusSize() {
